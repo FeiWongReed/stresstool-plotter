@@ -11,6 +11,7 @@ import os
 import sys
 import logging
 from datetime import datetime
+import tempfile
 
 logger = logging.getLogger('stplot')
 
@@ -25,6 +26,12 @@ def save_figure(output_directory, format, *args):
     fname = os.path.join(output_directory, name)
     plt.savefig(fname)
     return '<img src="%s" alt="%s"/>' % (name, name)
+
+def zipdir(path, zip):
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            zip.write(os.path.join(root, file), arcname=file)
+
 
 class Test(object):
     def __init__(self, hostname, testname, success_history, errors):
@@ -82,7 +89,6 @@ def process_zip_report(fname, output_directory):
 
             err_timestamps_msec = None
             if test.errors is not None:
-                print(testname, test.errors)
                 err_nanos = test.errors[:, 0]
                 err_timestamps_msec = np.apply_along_axis(lambda n: nanos_to_millis(n - err_nanos[0]), 0, err_nanos)
 
@@ -124,7 +130,7 @@ def process_zip_report(fname, output_directory):
 
             if err_timestamps_msec is not None:
                 plt.close()
-                plt.hist(err_timestamps_msec, bins=30, histtype='stepfilled', normed=False, color='r', label='Errors (total %d)' % len(err_timestamps_msec))
+                plt.hist(err_timestamps_msec, bins=err_timestamps_msec[-1] / 200, histtype='stepfilled', normed=False, color='r', label='Errors (total %d)' % len(err_timestamps_msec))
                 plt.title("Error history of '%s' on %s" % (testname, hostname))
                 plt.xlabel("Time since test start, msec")
                 plt.ylabel("Errors count")
@@ -146,17 +152,8 @@ def setup_logging():
 
 
 if __name__ == '__main__':
-    fnames = set(["sample/stresstest-latitude-rw-2015-121-05--11-49-47.zip"])
-    output = "output"
-
-    try:
-        shutil.rmtree(output)
-    except Exception:
-        pass
-    try:
-        os.makedirs(output)
-    except Exception:
-        pass
+    fnames = set(sys.argv)
+    output = tempfile.mkdtemp("stplotter")
 
     setup_logging()
 
@@ -165,3 +162,7 @@ if __name__ == '__main__':
         for fname in fnames:
             out.write(process_zip_report(fname, output))
         out.write("</body></html>")
+
+    zipf = zipfile.ZipFile('report-%s.zip' % (datetime.now().strftime("%Y-%m-%d--%H-%M-%S")), 'w')
+    zipdir(output, zipf)
+    zipf.close()
