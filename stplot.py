@@ -152,7 +152,7 @@ def setup_logging():
 
 
 if __name__ == '__main__':
-    fnames = set(sys.argv)
+    fnames = set(sys.argv[1:])
     output = tempfile.mkdtemp("stplotter")
 
     setup_logging()
