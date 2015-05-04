@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Analyzed Stresstest Report</title>
+</head>
+<body style="background: #293134; color: #6bba83; text-align: center; width: 100%">
+
+<div style="width: 80%; margin-left: auto; margin-right: auto;">
+
+{% for suite in suites %}
+<h2>{{ suite.zipname }}</h2>
+    {% for test in suite.tests %}
+    <h3><u>{{ test.name }}</u> on host <i>{{ test.hostname }}</i></h3>
+
+
+<div style="display: table; width: 100%">
+<div style="display: table-row">
+        <div style="display: table-cell;"><img src="{{ test.dist }}" style="width:100%"/></div>
+        <div style="display: table-cell;"><img src="{{ test.freq }}" style="width:100%"/></div>
+</div>
+</div>
+<div>
+        <img src="{{ test.hist }}" style="width:100%"/>
+</div>
+        {% if test.errors %}
+            <img src="{{ test.errors }}" />
+        {% endif %}
+    {% endfor %}
+{% endfor %}
+
+
+</div>
+</body>
+</html>
