@@ -231,7 +231,8 @@ def setup_logging():
 
 
 def main(fnames):
-    if True:
+    debug = False
+    if debug:
         output = "stplotterout"
         try:
             shutil.rmtree(output)
